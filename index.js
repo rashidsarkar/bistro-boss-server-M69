@@ -32,8 +32,8 @@ async function run() {
 
     //NOTE - MidleWare
     const verifyToken = (req, res, next) => {
-      console.log(req.headers);
-      console.log(req.headers.authorization);
+      // console.log(req.headers);
+      // console.log(req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "Unauthorized" });
       }
@@ -140,11 +140,44 @@ async function run() {
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
+    app.get("/menu/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await menuCollection.findOne(query);
+      res.send(result);
+    });
+    app.patch("/api/updateMenu/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateData = req.body;
+      const updateDoc = {
+        $set: {
+          name: updateData.name,
+          category: updateData.category,
+          price: updateData.price,
+          recipe: updateData.recipe,
+          image: updateData.image,
+        },
+      };
+      const result = await menuCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
     app.post("/api/createMenu", verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
       const result = await menuCollection.insertOne(item);
       res.send(result);
     });
+    app.delete(
+      "/api/deleteMenuItem/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await menuCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
